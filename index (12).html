@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>مثانه کوچولو</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    body {
+      font-family: sans-serif;
+      background: linear-gradient(#e0f7fa, #fff);
+      text-align: center;
+      padding: 20px;
+      transition: background 0.4s, color 0.4s;
+    }
+    body.dark {
+      background: #263238;
+      color: #fff;
+    }
+    .toggle-dark {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      padding: 5px 10px;
+      background: #607d8b;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .container {
+      width: 220px;
+      margin: auto;
+      position: relative;
+    }
+    .kidney {
+      width: 60px;
+      height: 100px;
+      background: #e57373;
+      border-radius: 60% 40% 60% 40% / 60% 60% 40% 40%;
+      display: inline-block;
+      position: relative;
+      transform: rotate(-20deg);
+    }
+    .kidney.left {
+      margin-right: 20px;
+      transform: rotate(20deg);
+    }
+    .drop {
+      width: 10px;
+      height: 15px;
+      background: #81d4fa;
+      border-radius: 50%;
+      position: absolute;
+      top: 100px;
+      left: 25px;
+      opacity: 0;
+    }
+    .drop.animate {
+      animation: dropToBladder 2s ease-in-out;
+    }
+    @keyframes dropToBladder {
+      0% { opacity: 0; top: 100px; }
+      30% { opacity: 1; top: 140px; }
+      100% { opacity: 0; top: 190px; }
+    }
+    .bladder-wrapper {
+      width: 200px;
+      height: 250px;
+      margin: 40px auto;
+      position: relative;
+    }
+    svg {
+      width: 100%;
+      height: 100%;
+    }
+    .filler {
+      fill: rgba(255, 235, 59, 0.7);
+      transition: transform 1s;
+    }
+    .circle-timer {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: #fbc02d;
+      margin: 20px auto;
+      width: 60px;
+      height: 100px;
+      margin: 20px auto;
+      position: relative;
+      background: #fbc02d;
+      clip-path: polygon(0 0, 100% 0, 60% 50%, 100% 100%, 0 100%, 40% 50%);
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin: 10px 5px;
+      cursor: pointer;
+      background: #4db6ac;
+      border: none;
+      border-radius: 10px;
+      color: white;
+    }
+    .alert { margin-top: 10px; color: #d32f2f; font-weight: bold; }
+    .stars { color: #ffca28; font-size: 24px; margin-top: 10px; }
+    .score { margin-top: 5px; font-weight: bold; }
+    table {
+      margin: 20px auto;
+      border-collapse: collapse;
+      width: 80%;
+      max-width: 400px;
+    }
+    table, th, td { border: 1px solid #999; }
+    th, td { padding: 8px; text-align: center; }
+  </style>
+</head>
+<body>
+  <button class="toggle-dark" onclick="toggleDarkMode()">🌓</button>
+  <h1>مثانه کوچولو 💧</h1>
+
+  <div class="container">
+    <div class="kidney left"><div class="drop" id="drop1"></div></div>
+    <div class="kidney"><div class="drop" id="drop2"></div></div>
+  </div>
+
+  <div class="bladder-wrapper">
+    <svg viewBox="0 0 200 250">
+      <defs>
+        <clipPath id="bladder-shape">
+          <path d="M100,10 C150,10 180,60 180,120 C180,180 150,220 100,240 C50,220 20,180 20,120 C20,60 50,10 100,10 Z" />
+        </clipPath>
+      </defs>
+      <rect id="fill-rect" x="0" y="0" width="200" height="250" class="filler" clip-path="url(#bladder-shape)" />
+      <path d="M100,10 C150,10 180,60 180,120 C180,180 150,220 100,240 C50,220 20,180 20,120 C20,60 50,10 100,10 Z"
+            fill="none" stroke="#888" stroke-width="4"/>
+    </svg>
+  </div>
+
+  <div class="circle-timer" id="circleTimer"></div>
+
+  <div>
+    <button onclick="resetBladder()">رفتم دستشویی 🚽</button>
+    <button onclick="resetStars()">ریست ستاره‌ها 🔄</button>
+    <div class="alert" id="alert"></div>
+    <div class="stars" id="stars"></div>
+    <div class="score" id="score"></div>
+  </div>
+
+  <div>
+    <h3>عملکرد هفتگی 🚽</h3>
+    <table id="logTable"></table>
+  </div>
+
+  <audio id="dripSound" src="https://cdn.pixabay.com/download/audio/2023/03/04/audio_d5e0d0e1d6.mp3?filename=drop-water-139006.mp3"></audio>
+  <audio id="cheerSound" src="https://cdn.pixabay.com/download/audio/2022/01/20/audio_e052fd4d4c.mp3?filename=kids-cheering-110437.mp3"></audio>
+
+  <script>
+    let fillPercent = parseFloat(localStorage.getItem('fillPercent')) || 0;
+    const lastUpdate = parseInt(localStorage.getItem("lastUpdate")) || Date.now();
+    const now = Date.now();
+    const minutesPassed = Math.floor((now - lastUpdate) / 60000);
+    fillPercent = Math.min(100, fillPercent + minutesPassed * 1.67);
+    localStorage.setItem('fillPercent', fillPercent);
+    localStorage.setItem("lastUpdate", now);
+
+    let points = parseInt(localStorage.getItem("points")) || 0;
+    let log = JSON.parse(localStorage.getItem("log")) || {};
+
+    const fillRect = document.getElementById('fill-rect');
+    const drop1 = document.getElementById("drop1");
+    const drop2 = document.getElementById("drop2");
+    const alertBox = document.getElementById("alert");
+    const stars = document.getElementById("stars");
+    const score = document.getElementById("score");
+    const dripSound = document.getElementById("dripSound");
+    const cheerSound = document.getElementById("cheerSound");
+    const logTable = document.getElementById("logTable");
+
+    function updateFill() {
+      const fillHeight = 250 * (fillPercent / 100);
+      fillRect.setAttribute('y', 250 - fillHeight);
+      fillRect.setAttribute('height', fillHeight);
+    }
+
+    function updateUI() {
+      updateFill();
+      alertBox.textContent = fillPercent > 90 ? "وقتشه بری دستشویی! 😬" :
+        fillPercent > 75 ? "مثانه داره پر میشه..." : "";
+      stars.innerHTML = "⭐️".repeat(points);
+      score.innerText = `امتیاز: ${points} ستاره`;
+      renderLog();
+    }
+
+    function animateDrops() {
+      drop1.classList.remove("animate");
+      drop2.classList.remove("animate");
+      void drop1.offsetWidth;
+      drop1.classList.add("animate");
+      drop2.classList.add("animate");
+    }
+
+    function updateBladder() {
+      if (fillPercent < 100) {
+        fillPercent += 1.67;
+        if (fillPercent > 100) fillPercent = 100;
+        localStorage.setItem('fillPercent', fillPercent);
+        animateDrops();
+        dripSound.play();
+        localStorage.setItem("lastUpdate", Date.now());
+        updateUI();
+      }
+    }
+
+    function resetBladder() {
+      fillPercent = 0;
+      points++;
+      logToday();
+      localStorage.setItem("fillPercent", fillPercent);
+      localStorage.setItem("points", points);
+      localStorage.setItem("log", JSON.stringify(log));
+      alertBox.textContent = "آفرین! مثانه خالی شد 🌟";
+      cheerSound.play();
+      localStorage.setItem("lastUpdate", Date.now());
+        updateUI();
+    }
+
+    function resetStars() {
+      points = 0;
+      localStorage.setItem("points", points);
+      localStorage.setItem("lastUpdate", Date.now());
+        updateUI();
+    }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle("dark");
+    }
+
+    function logToday() {
+      const days = ['شنبه','یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنج‌شنبه','جمعه'];
+      const jsDay = new Date().getDay();
+      const day = days[(jsDay + 6) % 7];
+      log[day] = (log[day] || 0) + 1;
+    }
+
+    function renderLog() {
+      const days = ['شنبه','یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنج‌شنبه','جمعه'];
+      const orderedDays = days;
+      logTable.innerHTML = '<tr><th>روز</th><th>تعداد دفعات</th></tr>' +
+        days.map(day => `<tr><td>${day}</td><td>${log[day] || 0}</td></tr>`).join('');
+    }
+
+    localStorage.setItem("lastUpdate", Date.now());
+        updateUI();
+    setInterval(updateBladder, 60000);
+    setInterval(() => {
+      drop1.classList.remove("animate");
+      drop2.classList.remove("animate");
+      void drop1.offsetWidth;
+      drop1.classList.add("animate");
+      drop2.classList.add("animate");
+      dripSound.play();
+    }, 6000);
+
+  </script>
+</body>
+</html>

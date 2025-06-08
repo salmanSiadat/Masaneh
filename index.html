@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="fa">
+<!DOCTYPE html><html lang="fa">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -26,12 +25,14 @@
       width: 60px;
       height: 100px;
       background: #e57373;
-      border-radius: 50% 50% 40% 40%;
+      border-radius: 60% 40% 60% 40% / 60% 60% 40% 40%;
       display: inline-block;
       position: relative;
+      transform: rotate(-20deg);
     }
     .kidney.left {
       margin-right: 20px;
+      transform: rotate(20deg);
     }
     .drop {
       width: 10px;
@@ -51,11 +52,12 @@
     .bladder {
       width: 100px;
       height: 120px;
-      background: #ffd54f;
+      background: #ffffff;
       border-radius: 50%;
       margin: 80px auto 10px;
       position: relative;
       overflow: hidden;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
       transition: transform 0.3s;
     }
     .bladder.fill {
@@ -69,6 +71,7 @@
       background: #fbc02d;
       height: 0%;
       transition: height 1s;
+      box-shadow: inset 0 0 10px rgba(255, 204, 0, 0.5);
     }
     @keyframes shake {
       0% { transform: translateX(0); }
@@ -97,6 +100,21 @@
       font-size: 24px;
       margin-top: 10px;
     }
+    .splash {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      width: 10px;
+      height: 10px;
+      background: #fbc02d;
+      border-radius: 50%;
+      transform: translateX(-50%) scale(0);
+      animation: splash 0.6s ease-out;
+    }
+    @keyframes splash {
+      0% { transform: translateX(-50%) scale(0.2); opacity: 1; }
+      100% { transform: translateX(-50%) scale(2.5); opacity: 0; }
+    }
   </style>
 </head>
 <body>
@@ -116,7 +134,7 @@
     <button onclick="resetBladder()">رفتم دستشویی 🚽</button>
     <div class="alert" id="alert"></div>
     <div class="stars" id="stars"></div>
-  </div>
+  </div><audio id="dripSound" src="https://cdn.pixabay.com/download/audio/2023/03/04/audio_d5e0d0e1d6.mp3?filename=drop-water-139006.mp3"></audio> <audio id="cheerSound" src="https://cdn.pixabay.com/download/audio/2022/01/20/audio_e052fd4d4c.mp3?filename=kids-cheering-110437.mp3"></audio>
 
   <script>
     let fillPercent = parseFloat(localStorage.getItem("fillPercent")) || 0;
@@ -125,6 +143,8 @@
     let bladder = document.getElementById("bladder");
     let alertBox = document.getElementById("alert");
     let stars = document.getElementById("stars");
+    let dripSound = document.getElementById("dripSound");
+    let cheerSound = document.getElementById("cheerSound");
 
     function updateUI() {
       fill.style.height = fillPercent + "%";
@@ -146,6 +166,8 @@
         fillPercent += 1.67;
         if (fillPercent > 100) fillPercent = 100;
         localStorage.setItem("fillPercent", fillPercent);
+        splashEffect();
+        dripSound.play();
         updateUI();
       }
     }
@@ -156,11 +178,18 @@
       localStorage.setItem("fillPercent", fillPercent);
       localStorage.setItem("points", points);
       alertBox.textContent = "آفرین! مثانه خالی شد 🌟";
+      cheerSound.play();
       updateUI();
+    }
+
+    function splashEffect() {
+      const splash = document.createElement("div");
+      splash.className = "splash";
+      bladder.appendChild(splash);
+      setTimeout(() => bladder.removeChild(splash), 600);
     }
 
     updateUI();
     setInterval(updateBladder, 60000);
-  </script>
-</body>
+  </script></body>
 </html>

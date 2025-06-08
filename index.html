@@ -4,15 +4,163 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>مثانه کوچولو</title>
-  <link rel="manifest" href="manifest.json">
+  <link rel="manifest" href="manifest.json" />
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('service-worker.js');
     }
   </script>
-  ...
+  <style>
+    body {
+      font-family: sans-serif;
+      background: linear-gradient(#e0f7fa, #fff);
+      text-align: center;
+      padding: 20px;
+      transition: background 0.3s, color 0.3s;
+    }
+    .container {
+      width: 200px;
+      margin: auto;
+    }
+    .kidney {
+      width: 60px;
+      height: 100px;
+      background: #e57373;
+      border-radius: 50% 50% 40% 40%;
+      display: inline-block;
+      position: relative;
+    }
+    .kidney.left {
+      margin-right: 20px;
+    }
+    .drop {
+      width: 10px;
+      height: 15px;
+      background: #81d4fa;
+      border-radius: 50%;
+      animation: drop 2s infinite;
+      position: absolute;
+      top: 100px;
+      left: 25px;
+    }
+    @keyframes drop {
+      0% { opacity: 0; top: 100px; }
+      50% { opacity: 1; top: 130px; }
+      100% { opacity: 0; top: 150px; }
+    }
+    .bladder {
+      width: 100px;
+      height: 120px;
+      background: #ffd54f;
+      border-radius: 50%;
+      margin: 80px auto 10px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.3s;
+    }
+    .bladder.fill {
+      animation: shake 0.5s infinite;
+    }
+    .fill-level {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: #fbc02d;
+      height: 0%;
+      transition: height 1s;
+    }
+    @keyframes shake {
+      0% { transform: translateX(0); }
+      25% { transform: translateX(-3px); }
+      50% { transform: translateX(3px); }
+      75% { transform: translateX(-3px); }
+      100% { transform: translateX(0); }
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin-top: 20px;
+      cursor: pointer;
+      background: #4db6ac;
+      border: none;
+      border-radius: 10px;
+      color: white;
+    }
+    .alert {
+      margin-top: 10px;
+      color: #d32f2f;
+      font-weight: bold;
+    }
+    .stars {
+      color: #ffca28;
+      font-size: 24px;
+      margin-top: 10px;
+    }
+  </style>
 </head>
 <body>
-  <!-- page content here -->
+  <h1>مثانه کوچولو 💧</h1>
+  <div class="container">
+    <div class="kidney left">
+      <div class="drop"></div>
+    </div>
+    <div class="kidney">
+      <div class="drop"></div>
+    </div>
+  </div>
+  <div class="bladder" id="bladder">
+    <div class="fill-level" id="fill"></div>
+  </div>
+  <div>
+    <button onclick="resetBladder()">رفتم دستشویی 🚽</button>
+    <div class="alert" id="alert"></div>
+    <div class="stars" id="stars"></div>
+  </div>
+
+  <script>
+    let fillPercent = parseFloat(localStorage.getItem("fillPercent")) || 0;
+    let points = parseInt(localStorage.getItem("points")) || 0;
+    let fill = document.getElementById("fill");
+    let bladder = document.getElementById("bladder");
+    let alertBox = document.getElementById("alert");
+    let stars = document.getElementById("stars");
+
+    function updateUI() {
+      fill.style.height = fillPercent + "%";
+      if (fillPercent > 90) {
+        alertBox.textContent = "وقتشه بری دستشویی! 😬";
+        bladder.classList.add("fill");
+      } else if (fillPercent > 75) {
+        alertBox.textContent = "مثانه داره پر میشه...";
+        bladder.classList.add("fill");
+      } else {
+        alertBox.textContent = "";
+        bladder.classList.remove("fill");
+      }
+      stars.innerHTML = "⭐️".repeat(points);
+    }
+
+    function updateBladder() {
+      if (fillPercent < 100) {
+        fillPercent += 1.67;
+        if (fillPercent > 100) fillPercent = 100;
+        localStorage.setItem("fillPercent", fillPercent);
+        updateUI();
+      }
+    }
+
+    function resetBladder() {
+      fillPercent = 0;
+      points++;
+      localStorage.setItem("fillPercent", fillPercent);
+      localStorage.setItem("points", points);
+      alertBox.textContent = "آفرین! مثانه خالی شد 🌟";
+      updateUI();
+    }
+
+    updateUI();
+    setInterval(updateBladder, 60000);
+  </script>
 </body>
 </html>

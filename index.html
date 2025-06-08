@@ -18,8 +18,9 @@
       transition: background 0.3s, color 0.3s;
     }
     .container {
-      width: 200px;
+      width: 220px;
       margin: auto;
+      position: relative;
     }
     .kidney {
       width: 60px;
@@ -39,26 +40,45 @@
       height: 15px;
       background: #81d4fa;
       border-radius: 50%;
-      animation: drop 2s infinite;
       position: absolute;
       top: 100px;
       left: 25px;
+      animation: dropToBladder 2s infinite;
     }
-    @keyframes drop {
+    @keyframes dropToBladder {
       0% { opacity: 0; top: 100px; }
-      50% { opacity: 1; top: 130px; }
-      100% { opacity: 0; top: 150px; }
+      50% { opacity: 1; top: 140px; }
+      100% { opacity: 0; top: 190px; }
     }
     .bladder {
-      width: 100px;
+      width: 120px;
       height: 120px;
-      background: #ffffff;
-      border-radius: 50%;
-      margin: 80px auto 10px;
+      background: #ffc1cc;
+      border-radius: 60% 60% 60% 60%;
+      margin: 100px auto 10px;
       position: relative;
       overflow: hidden;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      box-shadow: 0 0 15px rgba(0,0,0,0.15);
       transition: transform 0.3s;
+    }
+    .bladder::before {
+      content: "";
+      position: absolute;
+      top: 10px;
+      left: 30px;
+      width: 60px;
+      height: 60px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      filter: blur(5px);
+    }
+    .bladder::after {
+      content: "😊";
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 24px;
     }
     .bladder.fill {
       animation: shake 0.5s infinite;
@@ -83,7 +103,7 @@
     button {
       padding: 10px 20px;
       font-size: 16px;
-      margin-top: 20px;
+      margin: 10px 5px;
       cursor: pointer;
       background: #4db6ac;
       border: none;
@@ -99,21 +119,6 @@
       color: #ffca28;
       font-size: 24px;
       margin-top: 10px;
-    }
-    .splash {
-      position: absolute;
-      bottom: 10px;
-      left: 50%;
-      width: 10px;
-      height: 10px;
-      background: #fbc02d;
-      border-radius: 50%;
-      transform: translateX(-50%) scale(0);
-      animation: splash 0.6s ease-out;
-    }
-    @keyframes splash {
-      0% { transform: translateX(-50%) scale(0.2); opacity: 1; }
-      100% { transform: translateX(-50%) scale(2.5); opacity: 0; }
     }
   </style>
 </head>
@@ -132,6 +137,7 @@
   </div>
   <div>
     <button onclick="resetBladder()">رفتم دستشویی 🚽</button>
+    <button onclick="resetStars()">ریست ستاره‌ها 🔄</button>
     <div class="alert" id="alert"></div>
     <div class="stars" id="stars"></div>
   </div><audio id="dripSound" src="https://cdn.pixabay.com/download/audio/2023/03/04/audio_d5e0d0e1d6.mp3?filename=drop-water-139006.mp3"></audio> <audio id="cheerSound" src="https://cdn.pixabay.com/download/audio/2022/01/20/audio_e052fd4d4c.mp3?filename=kids-cheering-110437.mp3"></audio>
@@ -166,7 +172,6 @@
         fillPercent += 1.67;
         if (fillPercent > 100) fillPercent = 100;
         localStorage.setItem("fillPercent", fillPercent);
-        splashEffect();
         dripSound.play();
         updateUI();
       }
@@ -182,11 +187,10 @@
       updateUI();
     }
 
-    function splashEffect() {
-      const splash = document.createElement("div");
-      splash.className = "splash";
-      bladder.appendChild(splash);
-      setTimeout(() => bladder.removeChild(splash), 600);
+    function resetStars() {
+      points = 0;
+      localStorage.setItem("points", points);
+      updateUI();
     }
 
     updateUI();
